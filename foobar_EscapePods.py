@@ -1,94 +1,54 @@
-#def answer(entrances, exits, path):
-#    totalBunnies = 0
-#    visited = []
-#    capacities = []
-#    for i in range(len(path)):
-#        capacities.append(0)
-#    for ent in entrances[:]:
-#        for i in range(len(path[ent])):
-#            if path[ent][i] > 0:
-#                capacities[i] += path[ent][i]
-#                path[ent][i] = 0
-#        visited.append(ent)
-#    while True:
-#        pos = 0
-#        while pos < len(path):
-#            if visited.count(pos) == 0:
-#                inflow = False
-#                for i in range(len(path)):
-#                    if path[i][pos] > 0:
-#                        inflow = True
-#                        break
-#                if inflow == False:
-#                    break
-#            pos += 1
-#        if pos == len(path):
-#            break
-#        while visited.count(pos) == 0:
-#            maxFlow = max(path[pos])
-#            if maxFlow == 0:
-#                visited.append(pos)
-#                break
-#            pos2 = path[pos].index(maxFlow)
-#            if visited.count(pos2) == 0:
-#                if maxFlow > capacities[pos]:
-#                    capacities[pos2] += capacities[pos]
-#                    capacities[pos] = 0
-#                else:
-#                    capacities[pos] -= maxFlow
-#                    capacities[pos2] += maxFlow
-#                path[pos][pos2] = 0
-#                if path[pos].count(0) == len(path[pos]) or capacities[pos] == 0:
-#                    visited.append(pos)
-#            else:
-#                path[pos][pos2] = 0
-#    for ex in exits[:]:
-#        totalBunnies += capacities[ex]
-#    return totalBunnies
-
-#def answerAugm(entrances, exits, path):
-#    augmentPath = []
-#    totalBunnies = 0
-#    zeroOut = []
-#    while True:
-#        minFlow = 0
-#        for ent in entrances[:]:
-#            if zeroOut.count(ent) == 0:
-#                flowPath = [ent]
-#                pos = 0
-#            while len(flowPath) > 0:
-#                i = pos
-#                while i < len(path[flowPath[-1]]):
-#                    if path[flowPath[-1]][i] > 0 and flowPath.count(i) == 0 and path[flowPath[-1]][i] > minFlow and zeroOut.count(i) == 0:
-#                        flowPath.append(i)
-#                        break
-#                    i += 1
-#                if exits.count(flowPath[-1]):
-#                    current = []
-#                    for j in range(len(flowPath) - 1):
-#                        current.append(path[flowPath[j]][flowPath[j + 1]])
-#                    tempMinFlow = min(current)
-#                    if tempMinFlow > minFlow:
-#                        minFlow = tempMinFlow
-#                        augmentPath = []
-#                        for elem in flowPath[:]:
-#                            augmentPath.append(elem)
-#                    pos = flowPath[-1] + 1
-#                    flowPath.pop()
-#                elif i == len(path[flowPath[-1]]):
-#                    pos = flowPath[-1] + 1
-#                    flowPath.pop()
-#                else:
-#                    pos = 0
-#        for i in range(len(augmentPath) - 1):
-#            path[augmentPath[i]][augmentPath[i + 1]] -= minFlow
-#            if path[augmentPath[i]].count(0) == len(path[augmentPath[i]]):
-#                zeroOut.append(augmentPath[i])
-#            path[augmentPath[i + 1]][augmentPath[i]] += minFlow
-#        if minFlow == 0:
-#            break
-#        totalBunnies += minFlow
-#    return totalBunnies
+# Escape Pods
+# ===========
+#
+# You've blown up the LAMBCHOP doomsday device and broken the bunnies out of Lambda's prison - and now you need to escape from the space station as quickly and as orderly as possible! The bunnies have all gathered in various locations throughout the station, and need to make their way towards the seemingly endless amount of escape pods positioned in other parts of the station. You need to get the numerous bunnies through the various rooms to the escape pods. Unfortunately, the corridors between the rooms can only fit so many bunnies at a time. What's more, many of the corridors were resized to accommodate the LAMBCHOP, so they vary in how many bunnies can move through them at a time. 
+#
+# Given the starting room numbers of the groups of bunnies, the room numbers of the escape pods, and how many bunnies can fit through at a time in each direction of every corridor in between, figure out how many bunnies can safely make it to the escape pods at a time at peak.
+#
+# Write a function answer(entrances, exits, path) that takes an array of integers denoting where the groups of gathered bunnies are, an array of integers denoting where the escape pods are located, and an array of an array of integers of the corridors, returning the total number of bunnies that can get through at each time step as an int. The entrances and exits are disjoint and thus will never overlap. The path element path[A][B] = C describes that the corridor going from A to B can fit C bunnies at each time step.  There are at most 50 rooms connected by the corridors and at most 2000000 bunnies that will fit at a time.
+#
+# For example, if you have:
+# entrances = [0, 1]
+# exits = [4, 5]
+# path = [
+#   [0, 0, 4, 6, 0, 0],  # Room 0: Bunnies
+#   [0, 0, 5, 2, 0, 0],  # Room 1: Bunnies
+#   [0, 0, 0, 0, 4, 4],  # Room 2: Intermediate room
+#   [0, 0, 0, 0, 6, 6],  # Room 3: Intermediate room
+#   [0, 0, 0, 0, 0, 0],  # Room 4: Escape pods
+#   [0, 0, 0, 0, 0, 0],  # Room 5: Escape pods
+# ]
+#
+# Then in each time step, the following might happen:
+# 0 sends 4/4 bunnies to 2 and 6/6 bunnies to 3
+# 1 sends 4/5 bunnies to 2 and 2/2 bunnies to 3
+# 2 sends 4/4 bunnies to 4 and 4/4 bunnies to 5
+# 3 sends 4/6 bunnies to 4 and 4/6 bunnies to 5
+#
+# So, in total, 16 bunnies could make it to the escape pods at 4 and 5 at each time step.  (Note that in this example, room 3 could have sent any variation of 8 bunnies to 4 and 5, such as 2/6 and 6/6, but the final answer remains the same.)
+#
+# Languages
+# =========
+#
+# To provide a Python solution, edit solution.py
+# To provide a Java solution, edit solution.java
+#
+# Test cases
+# ==========
+#
+# Inputs:
+#     (int list) entrances = [0]
+#     (int list) exits = [3]
+#     (int) path = [[0, 7, 0, 0], [0, 0, 6, 0], [0, 0, 0, 8], [9, 0, 0, 0]]
+# Output:
+#     (int) 6
+#
+# Inputs:
+#     (int list) entrances = [0, 1]
+#     (int list) exits = [4, 5]
+#     (int) path = [[0, 0, 4, 6, 0, 0], [0, 0, 5, 2, 0, 0], [0, 0, 0, 0, 4, 4], [0, 0, 0, 0, 6, 6], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+# Output:
+#     (int) 16
 
 def BFS(entrances, exits, path, augmentPath):
     traversed = [False] * len(path)
@@ -135,25 +95,3 @@ def answer(entrances, exits, path):
             path[t][augmentPath[t]] += minFlow
             t = augmentPath[t]
     return totalBunnies
-
-
-
-l = input().split()
-entrances = []
-for x in l[:]:
-    entrances.append(int(x))
-l = input().split()
-exits = []
-for x in l[:]:
-    exits.append(int(x))
-size = int(input())
-path = []
-for i in range(size):
-    tempList = []
-    l = input().split()
-    for y in l[:]:
-        tempList.append(int(y))
-    path.append(tempList)
-#print(answerAugm(entrances, exits, path))
-print(answer(entrances, exits, path))
-
